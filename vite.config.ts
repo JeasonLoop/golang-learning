@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { copyFileSync } from 'fs';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -16,7 +17,20 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react()],
+      plugins: [
+        react(),
+        // Plugin to copy .nojekyll to dist for GitHub Pages
+        {
+          name: 'copy-nojekyll',
+          closeBundle() {
+            try {
+              copyFileSync(path.resolve(__dirname, '.nojekyll'), path.resolve(__dirname, 'dist', '.nojekyll'));
+            } catch (err) {
+              // Ignore if .nojekyll doesn't exist or dist doesn't exist yet
+            }
+          }
+        }
+      ],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -29,6 +43,12 @@ export default defineConfig(({ mode }) => {
       build: {
         outDir: 'dist',
         assetsDir: 'assets',
+        rollupOptions: {
+          output: {
+            // Ensure proper MIME types for JavaScript modules
+            format: 'es',
+          }
+        }
       }
     };
 });
