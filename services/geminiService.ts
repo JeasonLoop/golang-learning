@@ -3,12 +3,9 @@ import { CodeExecutionResult } from "../types";
 
 // Initialize Gemini Client
 const getAiClient = () => {
-  // Safely access process.env to prevent runtime crashes in browser
-  // In GitHub Pages or static environments, process might be undefined or empty
-  const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : '';
-
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    console.warn("API_KEY is missing. AI features will be disabled.");
+    console.error("API_KEY is missing from environment variables.");
     return null;
   }
   return new GoogleGenAI({ apiKey });
@@ -16,22 +13,22 @@ const getAiClient = () => {
 
 export const explainCode = async (code: string, context: string): Promise<string> => {
   const client = getAiClient();
-  if (!client) return "API Key 缺失。无法使用 AI 解释功能。";
+  if (!client) return "API Key 缺失。请配置环境变量。";
 
   try {
     const model = "gemini-2.5-flash";
     const prompt = `
       上下文: 用户正在学习 Go 语言。他们当前正在浏览关于 "${context}" 的课程。
-
+      
       用户代码:
       \`\`\`go
       ${code}
       \`\`\`
-
+      
       任务: 请用通俗易懂的**中文**解释这段代码做了什么。重点解释与上下文相关的概念。保持在 150 字以内。
       风格: 像一位耐心的老师，清晰、鼓励。
     `;
-
+    
     const response = await client.models.generateContent({
       model,
       contents: prompt,
@@ -46,18 +43,18 @@ export const explainCode = async (code: string, context: string): Promise<string
 
 export const simulateRun = async (code: string): Promise<CodeExecutionResult> => {
   const client = getAiClient();
-  if (!client) return { output: "", error: "API Key 缺失，无法模拟运行代码。" };
+  if (!client) return { output: "", error: "API Key missing." };
 
   try {
     const model = "gemini-2.5-flash";
     const prompt = `
       你是一个 Go (Golang) 编译器和运行时模拟器。
-
+      
       待执行代码:
       \`\`\`go
       ${code}
       \`\`\`
-
+      
       任务: 预测这段代码的标准输出 (stdout)。
       规则:
       1. 只返回输出的文本内容。
@@ -71,7 +68,7 @@ export const simulateRun = async (code: string): Promise<CodeExecutionResult> =>
     });
 
     const text = response.text || "";
-
+    
     if (text.toLowerCase().includes("error:")) {
         return { output: "", error: text };
     }
@@ -85,7 +82,7 @@ export const simulateRun = async (code: string): Promise<CodeExecutionResult> =>
 
 export const chatWithTutor = async (history: {role: string, parts: {text: string}[]}[], message: string): Promise<string> => {
     const client = getAiClient();
-    if (!client) return "API Key 缺失。无法连接到 AI 助教。";
+    if (!client) return "API Key 缺失。";
 
     try {
         const chat = client.chats.create({

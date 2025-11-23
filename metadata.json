@@ -1,5 +1,4 @@
 {
-  "name": "Copy of GoViz Academy",
-  "description": "An interactive, visual learning platform for the Go programming language, featuring real-time visualizations of memory, concurrency, and data structures powered by AI explanations.",
-  "requestFramePermissions": []
+  "name": "GoViz Academy",
+  "description": "An interactive, visual learning platform for the Go programming language, featuring real-time visualizations of memory, concurrency, and data structures powered by AI explanations."
 }
